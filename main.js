@@ -1,5 +1,101 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Sticky Header
+
+    /* --- Advanced Animations --- */
+
+    // 1. Custom Cursor & Parallax Blobs
+    const cursor = document.querySelector('.custom-cursor');
+    const follower = document.querySelector('.cursor-follower');
+    const blobs = document.querySelectorAll('.blob');
+    
+    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+    let followerX = mouseX, followerY = mouseY;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+    });
+
+    // Animate follower loop
+    function animateFollower() {
+        followerX += (mouseX - followerX) * 0.15; // easing
+        followerY += (mouseY - followerY) * 0.15;
+        if(follower) follower.style.transform = `translate(${followerX}px, ${followerY}px)`;
+        
+        // Subtle Parallax Blobs
+        const offsetX = (mouseX / window.innerWidth - 0.5) * -100;
+        const offsetY = (mouseY / window.innerHeight - 0.5) * -100;
+        
+        blobs.forEach((blob, i) => {
+            const depth = (i + 1) * 0.5;
+            blob.style.transform = `translate(${offsetX * depth}px, ${offsetY * depth}px)`;
+        });
+        
+        requestAnimationFrame(animateFollower);
+    }
+    animateFollower();
+
+    // 2. Magnetic Buttons & Cursor Hover State
+    const magneticElements = document.querySelectorAll('.btn, .nav-links a, .service-card');
+    
+    magneticElements.forEach(el => {
+        el.addEventListener('mouseenter', () => follower.classList.add('hovering'));
+        el.addEventListener('mouseleave', () => {
+            follower.classList.remove('hovering');
+            el.style.transform = ''; // reset magnetic pull
+        });
+        
+        // Magnetism
+        el.addEventListener('mousemove', (e) => {
+            if(!el.classList.contains('btn')) return; // Strong magnetism only on buttons
+            
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            el.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+        });
+    });
+
+    // 3. Split Text Stagger Reveal
+    const splitTextEls = document.querySelectorAll('[data-split-text]');
+    splitTextEls.forEach(el => {
+        const text = el.innerText;
+        el.innerHTML = '';
+        text.split(' ').forEach((word, wordIndex) => {
+            const wordSpan = document.createElement('span');
+            wordSpan.style.display = 'inline-block';
+            wordSpan.style.whiteSpace = 'pre';
+            
+            // Re-add the break for title manually
+            if (word.includes('Boundaries')) {
+                el.appendChild(document.createElement('br'));
+            }
+            
+            word.split('').forEach((char, charIndex) => {
+                const charSpan = document.createElement('span');
+                charSpan.innerText = char;
+                charSpan.className = 'char';
+                charSpan.style.animationDelay = `${(wordIndex * 0.1) + (charIndex * 0.03)}s`;
+                wordSpan.appendChild(charSpan);
+            });
+            
+            wordSpan.appendChild(document.createTextNode(' '));
+            el.appendChild(wordSpan);
+        });
+        
+        // Fix gradient specifically for the newly generated spans
+        const spans = el.querySelectorAll('.char');
+        spans.forEach(span => {
+            if(span.innerText.trim() && span.parentNode.innerText.includes('Boundaries')) {
+                span.classList.add('gradient-text');
+                span.style.backgroundClip = 'text';
+                span.style.webkitBackgroundClip = 'text';
+            }
+        });
+    });
+
+    // 4. Sticky Header (Legacy)
     const header = document.getElementById('header');
     window.addEventListener('scroll', () => {
         if (window.scrollY > 50) {
